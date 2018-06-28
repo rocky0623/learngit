@@ -1,0 +1,34 @@
+  <resultMap id="exceptionTypePOJO" type="BillExceptionTypePOJO">
+    <id column="id" jdbcType="CHAR" property="id" />
+    <collection property="exceptionType" ofType="string" javaType="list">  
+		<result column="exception_type" />  
+	</collection>  
+  </resultMap>
+  
+  <select id="getBillListByIds" resultMap="exceptionTypePOJO">
+  	SELECT
+	t.id, t1.exception_type
+FROM
+	ticket_bill_front t
+inner JOIN ticket_bill_front_exception t1 ON t.id = t1.b_front_id
+WHERE
+	t.id IN 
+	<foreach collection="ids" item="item" separator="," open="(" close=")">
+			#{item}
+	</foreach>
+	AND t.org_code = #{orgCode}
+UNION
+	SELECT
+		t.id, t4.exception_type
+	FROM
+		ticket_bill_front t
+	inner JOIN ticket_bill_back t2 ON t.id = t2.b_front_id
+	inner JOIN ticket_bill_back_detail t3 ON t2.id = t3.b_back_id
+	inner JOIN ticket_bill_back_exception t4 ON t3.id = t4.back_detail_id
+	WHERE
+		t.id IN 
+	<foreach collection="ids" item="item" separator="," open="(" close=")">
+		#{item}
+	</foreach>
+	AND t.org_code = #{orgCode}
+  </select>
