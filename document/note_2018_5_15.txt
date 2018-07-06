@@ -285,3 +285,8 @@ redis RDB AOF——https://blog.csdn.net/m0_38110132/article/details/76906422
 高并发请求：
 1、客户端拦截：js控制按钮不可用，拦截大部分用户
 2、站点层拦截，通过uid以及redis集群，为每个uid的请求设置访问频率
+
+Mybatis插件——https://blog.csdn.net/top_code/article/details/55520948
+实现org.apache.ibatis.plugin.Interceptor，使用@Signature指定拦截的类、方法签名
+
+mysql replace into
