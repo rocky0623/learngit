@@ -290,3 +290,7 @@ Mybatis插件——https://blog.csdn.net/top_code/article/details/55520948
 实现org.apache.ibatis.plugin.Interceptor，使用@Signature指定拦截的类、方法签名
 
 mysql replace into
+
+spring注解
+@Cacheable，@CacheEvict——https://www.cnblogs.com/fashflying/p/6908028.html
+@Async
