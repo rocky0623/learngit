@@ -294,3 +294,9 @@ mysql replace into
 spring注解
 @Cacheable，@CacheEvict——https://www.cnblogs.com/fashflying/p/6908028.html
 @Async
+@ConditionalOnProperty
+@Around，@Pointcut
+@Pointcut(value = "@annotation(com.stylefeng.guns.common.annotion.DataSource)")
+@Around("cutService()")
+
+spring的Ordered顺序
