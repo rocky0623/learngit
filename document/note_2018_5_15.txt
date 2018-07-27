@@ -291,12 +291,84 @@ Mybatis插件——https://blog.csdn.net/top_code/article/details/55520948
 
 mysql replace into
 
-spring注解
+Spring注解
 @Cacheable，@CacheEvict——https://www.cnblogs.com/fashflying/p/6908028.html
-@Async
-@ConditionalOnProperty
-@Around，@Pointcut
+@Async——异步方法注解
+@DependsOn——告诉容器，本类需要依赖某个类，因而需要在该类初始化完成后再初始化本类
+@Lazy
+
+@Import——可引入被{@link Configuration}, {@link ImportSelector}, {@link ImportBeanDefinitionRegistrar}三种类修饰的类
+
+Spring Config注解
+@Configuration
+@Bean
+加载规则注解
+@ConditionalOnProperty——havingValue与配置中一致时才实例化
+@ConditionalOnBean——仅仅在当前上下文中存在某个对象时，才会实例化一个Bean
+@ConditionalOnClass——某个class位于类路径上，才会实例化一个Bean
+@ConditionalOnMissingClass——某个class类路径上不存在的时候，才会实例化一个Bean
+@ConditionalOnExpression——当表达式为true的时候，才会实例化一个Bean
+@ConditionalOnMissingBean——仅仅在当前上下文中不存在某个对象时，才会实例化一个Bean
+@ConditionalOnMissingClass——某个class类路径上不存在的时候，才会实例化一个Bean
+@ConditionalOnNotWebApplication——不是web应用
+
+AOP注解
+@Around，@Pointcut，@Before，@After
 @Pointcut(value = "@annotation(com.stylefeng.guns.common.annotion.DataSource)")
 @Around("cutService()")
 
-spring的Ordered顺序
+Spring的Ordered顺序
+
+分布式与集群
+集群：多个相同的应用部署在多个机器上
+分布式：一个应用拆分成多个模块部署在多个机器上
+
+springboot的启动原理
+
+logback的配置详解——http://tengj.top/2017/04/05/springboot7/
+
+java的队列 Queue（LinkedList）——https://www.cnblogs.com/skywang12345/p/3308807.html
+
+spring多数据源（AbstractRoutingDataSource）——https://blog.csdn.net/u012881904/article/details/77449710
+
+DataSourceAutoConfiguration
+DataSourceInitializer——初始化数据源，执行sql脚本
+
+springboot自动加载bean原理：
+自Condition接口开始，由抽象类SpringBootCondition实现，所有condition都继承自这个抽象类，每个condition都有自己的order，用于在容器初始化过程中，按次序加载各个被注解修饰的bean（存在于spring-boot-autoconfigure-x.x.x.jar中）
+
+分布式事务——https://blog.csdn.net/bjweimengshu/article/details/79607522
+
+SpringBoot内嵌tomcat源码context——EmbeddedWebApplicationContext——https://blog.csdn.net/liaokailin/article/details/52269786
+ServerProperties#customize-负责加载tomcat配置的类
+
+设计模式：
+1、在无法改变既定类的结构、方法时，可使用访问者模式，以自定义类加载既定类，然后在自定义类中添加逻辑操作既定类，既达到实现效果，又不改变原类。
+
+BeanDefinitionBuilder读取配置文件，通过#addPropertyValue，将配置以键值对的形式添加到其内部的beanDefinition中
+
+SpringAop事务
+TransactionAspectSupport#invokeWithinTransaction可通过代理method以及targetClass获取TransactionAttribute（内部存储了该方法的事务隔离、传播性、以及rollback-for），
+然后调用InvocationCallback#proceedWithInvocation（实际类型为ReflectiveMethodInvocation），继而调用#invokeJoinpoint后由AopUtils#invokeJoinpointUsingReflection完成对目标service的反射调用。
+spring对每个被代理的对象方法在被实际调用前都会先调用org.springframework.aop.framework.ReflectiveMethodInvocation.proceed()，判断是否有拦截链，然后按次序执行拦截链上的方法，都执行完毕后，再反射调用本方法。
+（需要注意的是在controller中调用的第一个方法会被代理，之后该方法中的类中的方法再被调用时，不会再被代理，因而在该类的方法执行中不能有异常被捕获，否则事务将失效。eg：除该类以外的方法仍然会被代理，事务依然有效）
+（需要注意的是所有以this或省略this调用的方法（包括private方法）均不会被spring代理，在此类方法中若抛出异常，且外部捕获后不处理时，事务将失效）
+只有代理对象的方法才会被事务监控，而this是普通对象，不会被spring代理，因而事务也就不会生效了
+
+https://blog.csdn.net/chjttony/article/details/6321440
+org.springframework.aop.framework.ReflectiveMethodInvocation.proceed()根据每个被代理的方法的拦截链决定执行顺序，当拦截链上的每个切面方法都执行完毕时，开始反射执行本方法。
+org.springframework.transaction.interceptor.TransactionInterceptor.invoke(MethodInvocation)
+org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction(Method, Class<?>, InvocationCallback)
+org.springframework.transaction.interceptor.new InvocationCallback() {...}.proceedWithInvocation()
+org.aopalliance.intercept.Joinpoint.proceed()
+org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint()
+org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(Object, Method, Object[])
+java.lang.reflect.Method.invoke(Object, Object...)执行反射
+
+TransactionAspectSupport#invokeWithinTransaction——invocation.proceedWithInvocation()
+（出现异常catch）#completeTransactionAfterThrowing
+txInfo.getTransactionManager().rollback(txInfo.getTransactionStatus())
+org.springframework.transaction.support.AbstractPlatformTransactionManager.rollback(TransactionStatus)
+org.springframework.transaction.support.AbstractPlatformTransactionManager.processRollback(DefaultTransactionStatus)
+org.springframework.jdbc.datasource.DataSourceTransactionManager.doSetRollbackOnly(DefaultTransactionStatus)设置回滚标志，之后在事务commit时会检查该标志，即使异常被捕获，只要发现该标志被修改，事务依然会回滚，具体见：
+org.springframework.transaction.support.AbstractPlatformTransactionManager.commit(TransactionStatus)
