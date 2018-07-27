@@ -354,6 +354,7 @@ spring对每个被代理的对象方法在被实际调用前都会先调用org.s
 （需要注意的是在controller中调用的第一个方法会被代理，之后该方法中的类中的方法再被调用时，不会再被代理，因而在该类的方法执行中不能有异常被捕获，否则事务将失效。eg：除该类以外的方法仍然会被代理，事务依然有效）
 （需要注意的是所有以this或省略this调用的方法（包括private方法）均不会被spring代理，在此类方法中若抛出异常，且外部捕获后不处理时，事务将失效）
 只有代理对象的方法才会被事务监控，而this是普通对象，不会被spring代理，因而事务也就不会生效了
+http://jinnianshilongnian.iteye.com/blog/1487235
 
 https://blog.csdn.net/chjttony/article/details/6321440
 org.springframework.aop.framework.ReflectiveMethodInvocation.proceed()根据每个被代理的方法的拦截链决定执行顺序，当拦截链上的每个切面方法都执行完毕时，开始反射执行本方法。
