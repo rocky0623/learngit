@@ -1642,6 +1642,22 @@ org.apache.ibatis.binding.MapperMethod内部封装了两个对象
 这样在SqlSessionTemplate调用select、insert等方法时，实际是以代理对象sqlSessionProxy调用，而sqlSessionProxy又是被SqlSessionInterceptor代理的对象，因而这时实际调用的方法为SqlSessionInterceptor#invoke即代理对象的代理方法，该方法内部会先获取同样实现了SqlSession的DefaultSqlSession，而后以DefaultSqlSession对象调用其内部的同名方法。
 DefaultSqlSession会调用内部的实例变量executor，因而org.apache.ibatis.executor.Executor才是最后实际调用JDBC操作数据库的核心类
 
+总结（调用规则）：
+1、以MapperFactoryBean的构造器MapperFactoryBean(Class<T>)根据实际类型调用MapperFactoryBean#getObject
+2、SqlSessionDaoSupport.getSqlSession()——获取到的实为SqlSessionTemplate
+3、SqlSession.getMapper(Class<T>)——实为SqlSessionTemplate#getMapper(Class<T>)
+4、DefaultSqlSession.getMapper(Class<T>)实际是调用内部的Configuration.getMapper(Class<T>, SqlSession)
+5、而Configuration.getMapper实际为调用内部的MapperRegistry.getMapper(Class<T>, SqlSession)
+6、MapperRegistry.getMapper第一次使用jdk的代理MapperProxyFactory.newInstance(SqlSession)，这个方法会根据mapperInterface的class实例化代理类
+到此，代理类就获取完成了
+
+注：SqlSessionTemplate内部有sqlSessionProxy代理类同样实现了SqlSession，其由SqlSessionInterceptor完成增强代理（依然是jdk动态代理），所有SqlSessionTemplate的执行实际上都由sqlSessionProxy执行，即SqlSessionInterceptor完成代理，而具体代理的过程事实上是获取DefaultSqlSession进行实际方法调用。
+
+所以这里一共使用了两次jdk的动态代理：
+1、一个是MapperRegistry.getMapper通过MapperProxyFactory.newInstance由MapperProxy完成增强
+2、还一个是SqlSessionTemplate通过内部的sqlSessionProxy由SqlSessionInterceptor完成增强
+
+
 关于org.mybatis.spring.SqlSessionTemplate.SqlSessionInterceptor.invoke(Object, Method, Object[])：
 1、这里的设计很奥妙，由于SqlSession的内部定义的sql操作方法相当多，且每次都需要获取、关闭sqlSession、反射调用方法的前后还涉及事务的提交、回滚，所以这里使用了jdk的动态代理，完成了对公用操作的封装，并利用反射调用实现了每个CRUD方法）
 2、这里获取与关闭sqlSession均借助于SqlSessionUtils实现
