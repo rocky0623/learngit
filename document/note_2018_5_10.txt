@@ -495,6 +495,7 @@ Spring format注解
 @Profile（其内部也是被@Conditional注解修饰）
 @Condition——https://blog.csdn.net/qq_26525215/article/details/53510156
 @Import——可引入——统一在ConfigurationClassPostProcessor（BeanDefinitionRegistryPostProcessor）.postProcessBeanDefinitionRegistry(BeanDefinitionRegistry)即AbstractApplicationContext.invokeBeanFactoryPostProcessors(ConfigurableListableBeanFactory)中被反射调用
+可导入普通的类（即没有在xml中配置，且也不带@Component注解的类），该类中可以在不添加@Component的情况下使用@Bean注册bean
 1、被Configuration注解修饰的类 {@link Configuration}
 最常用的，通过cglib将@Configuration的类生成代理bean，可以将该类的方法参数中自动注入被@Import修饰的类中的注册bean
 2、实现ImportSelector的类 {@link ImportSelector}
@@ -1025,6 +1026,7 @@ AbstractAutowireCapableBeanFactory.doCreateBean
 			return beanInstance;
 		}
 因而只有实现了FactoryBean的bean，且没以"&"开头时，才会继续执行下去，直到调用AbstractBeanFactory的父类FactoryBeanRegistrySupport#getObjectFromFactoryBean、#doGetObjectFromFactoryBean后，调用FactoryBean被重写的getObject返回其构造的特殊实例为止，到此此FactoryBean的getObject就代替了原类型bean了。
+这里的执行是在实例化FactoryBean之后的，是在执行完AbstractAutowireCapableBeanFactory.doCreateBean后才执行的。所以容易该FactoryBean还实现了InitializingBean（如mybatis的MapperFactoryBean），那么其InitializingBean#afterPropertiesSet执行是在FactoryBean#getObject之前的。
 
 7、方法执行至此，若已获取到了bean，且requiredType不为空，同时requiredType.isAssignableFrom(bean.getClass())又返回false（即requiredType不是bean.getClass()的父类），调用AbstractBeanFactory.getTypeConverter()获取类型转换器，并调用该转换器TypeConverter.convertIfNecessary(Object, Class<T>)进行类型转换，最终返回该bean。
 // TODO 待补充
